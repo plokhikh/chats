@@ -11,47 +11,35 @@ import (
 
 type msgStruct struct {
 	UserId int
-	Content []byte
+	Data   []byte
 }
 
-type userConnect struct {
+type userOnline struct {
 	UserId int
-	Output chan []byte //output channel for a user
-	Input chan []byte //input channel from user
+	Output http.ResponseWriter //output writer for a user
 	Sid []byte      //session id
 }
 
 var addr = flag.String("addr", "127.0.0.1:8080", "http service address")
 var upgrader = websocket.Upgrader{}
 //массив структур с id пользователя и исходящим каналом к нему
-var userConnects = make([]userConnect, 0, 10)
+var online = make([]userOnline, 0, 10)
 var count = 0
+var input chan msgStruct
 
 /**
  * регистрируем пользователя, выдавая коннект
  */
-func register(userId int, input chan []byte) userConnect {
-	var userConnect userConnect
+func register(userId int, response http.ResponseWriter) userOnline {
+	var userConnect userOnline
 	log.Printf("register user: %d", userId)
 
-	userConnect.Output = make(chan []byte, 1024)
+	userConnect.Output = response
 	userConnect.UserId = userId
-	userConnect.Input = input
 
-	userConnects = append(userConnects, userConnect)
+	online = append(online, userConnect)
 
 	return userConnect
-}
-
-/**
- * роутим сообщение нужным пользователям
- */
-func route(msg msgStruct) {
-	for _, userConnect := range userConnects {
-		if msg.UserId != userConnect.UserId {
-			userConnect.Output <- msg.Content
-		}
-	}
 }
 
 /**
@@ -67,35 +55,14 @@ func handle(response http.ResponseWriter, request *http.Request) {
 	count++
 	userId := count
 
-	//превращаем Reader в chan
-	userInput := make(chan []byte, 1024)
-	go func(ch chan []byte) {
+	_ = register(userId, response)
+
+	for {
 		for {
 			if _, message, err := conn.ReadMessage(); err == nil {
 				log.Printf("recv: %s", message)
-				ch <- message
+				input <- msgStruct{UserId: userId, Data: message}
 			} else {
-				log.Print(err)
-				conn.Close()
-				break
-			}
-		}
-	} (userInput)
-
-	userConnect := register(userId, userInput)
-
-	for {
-		select {
-		//если прочитали из сокета от юзера - роутим сообщение
-		case bytes := <- userConnect.Input:
-			msg := msgStruct{UserId: userId, Content: bytes}
-			log.Printf("user %d print: %s", msg.UserId, msg.Content)
-		//асинхронно рассылаем сообщение пользователям
-			go route(msg)
-		//если прочитали что-то из входящего канала юзеру - отправляем в сокет
-		case bytes := <- userConnect.Output:
-			log.Printf("send message \"%s\" for user %d", bytes, userConnect.UserId)
-			if err = conn.WriteMessage(websocket.TextMessage, bytes); err != nil {
 				log.Print(err)
 				conn.Close()
 				break
@@ -104,9 +71,23 @@ func handle(response http.ResponseWriter, request *http.Request) {
 	}
 }
 
+/** слушаем входящий канал и шлем куда надо */
+func listenInput() {
+	for {
+		message := <- input
+		log.Printf("input got message: %s", message)
+		for _, userOnline := range online {
+			if message.UserId != userOnline.UserId {
+				go userOnline.Output.Write(message.Data)
+			}
+		}
+	}
+}
+
 func main() {
 	upgrader.CheckOrigin = checkSameOrigin
 	http.HandleFunc("/", handle)
+	go listenInput()
 	panic(http.ListenAndServe(*addr, nil))
 }
 
