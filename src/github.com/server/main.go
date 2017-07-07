@@ -6,19 +6,19 @@ import (
 	"github.com/gorilla/websocket"
 	"net/url"
 	"log"
-	//"fmt"
+	"encoding/json"
 )
 
 var addr = flag.String("addr", "127.0.0.1:8080", "http service address")
 var upgrader = websocket.Upgrader{}
 //массив структур с id пользователя и исходящим каналом к нему
-var online = make([]userOnline, 0, 10)
+var online = make([]UserOnline, 0, 10)
 var count = 0
-var input chan pkg
+var input = make(chan RawPkg)
 
 /** регистрируем пользователя, выдавая коннект */
 func register(userId int, response http.ResponseWriter) {
-	var userConnect userOnline
+	var userConnect UserOnline
 	log.Printf("register user: %d", userId)
 
 	userConnect.Output = response
@@ -45,7 +45,8 @@ func handle(response http.ResponseWriter, request *http.Request) {
 	for {
 		if _, message, err := conn.ReadMessage(); err == nil {
 			log.Printf("recv: %s", message)
-			input <- pkg{UserId: userId, Message: message}
+			input <- RawPkg{UserId: userId, Message: message}
+			response.Write([]byte("sdfgsdgfdsg"))
 		} else {
 			log.Print(err)
 			conn.Close()
@@ -57,13 +58,14 @@ func handle(response http.ResponseWriter, request *http.Request) {
 /** слушаем входящий канал и шлем куда надо */
 func listenInput() {
 	for {
-		pkg := <- input
-		log.Printf("input got message: %s", pkg.Message)
-		//for _, userOnline := range online {
-		//	if message.UserId != userOnline.UserId {
-		//		go userOnline.Output.Write(message.Data)
-		//	}
-		//}
+		rawPkg := <- input
+		command := Command{}
+
+		if err := json.Unmarshal([]byte(rawPkg.Message), &command); err!=nil {
+			log.Panic(err)
+		} else {
+			commandHandler(command)
+		}
 	}
 }
 

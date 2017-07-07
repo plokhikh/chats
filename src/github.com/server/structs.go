@@ -2,13 +2,38 @@ package main
 
 import "net/http"
 
-type pkg struct {
+type UserOnline struct {
+	UserId int
+	Output http.ResponseWriter //output writer for a user
+	Sid []byte      //session id
+}
+
+/**
+ * голая структура куда читается то, что присшло от юзера
+ */
+type RawPkg struct {
 	UserId  int
 	Message []byte
 }
 
-type userOnline struct {
-	UserId int
-	Output http.ResponseWriter //output writer for a user
-	Sid []byte      //session id
+/**
+ * базовая структура для всех сообщени от юзера
+ */
+type Pkg struct {
+	Type string
+	Ts int
+	Data interface{}
+}
+
+/**
+ * базовая структура для всех команд от пользователя
+ */
+type Command struct {
+	*Pkg
+	Action string
+}
+
+type CommandSendMessageData struct {
+	To string
+	Message string
 }
