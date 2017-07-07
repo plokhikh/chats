@@ -9,28 +9,15 @@ import (
 	//"fmt"
 )
 
-type msgStruct struct {
-	UserId int
-	Data   []byte
-}
-
-type userOnline struct {
-	UserId int
-	Output http.ResponseWriter //output writer for a user
-	Sid []byte      //session id
-}
-
 var addr = flag.String("addr", "127.0.0.1:8080", "http service address")
 var upgrader = websocket.Upgrader{}
 //массив структур с id пользователя и исходящим каналом к нему
 var online = make([]userOnline, 0, 10)
 var count = 0
-var input chan msgStruct
+var input chan pkg
 
-/**
- * регистрируем пользователя, выдавая коннект
- */
-func register(userId int, response http.ResponseWriter) userOnline {
+/** регистрируем пользователя, выдавая коннект */
+func register(userId int, response http.ResponseWriter) {
 	var userConnect userOnline
 	log.Printf("register user: %d", userId)
 
@@ -38,8 +25,6 @@ func register(userId int, response http.ResponseWriter) userOnline {
 	userConnect.UserId = userId
 
 	online = append(online, userConnect)
-
-	return userConnect
 }
 
 /**
@@ -55,18 +40,16 @@ func handle(response http.ResponseWriter, request *http.Request) {
 	count++
 	userId := count
 
-	_ = register(userId, response)
+	register(userId, response)
 
 	for {
-		for {
-			if _, message, err := conn.ReadMessage(); err == nil {
-				log.Printf("recv: %s", message)
-				input <- msgStruct{UserId: userId, Data: message}
-			} else {
-				log.Print(err)
-				conn.Close()
-				break
-			}
+		if _, message, err := conn.ReadMessage(); err == nil {
+			log.Printf("recv: %s", message)
+			input <- pkg{UserId: userId, Message: message}
+		} else {
+			log.Print(err)
+			conn.Close()
+			break
 		}
 	}
 }
@@ -74,13 +57,13 @@ func handle(response http.ResponseWriter, request *http.Request) {
 /** слушаем входящий канал и шлем куда надо */
 func listenInput() {
 	for {
-		message := <- input
-		log.Printf("input got message: %s", message)
-		for _, userOnline := range online {
-			if message.UserId != userOnline.UserId {
-				go userOnline.Output.Write(message.Data)
-			}
-		}
+		pkg := <- input
+		log.Printf("input got message: %s", pkg.Message)
+		//for _, userOnline := range online {
+		//	if message.UserId != userOnline.UserId {
+		//		go userOnline.Output.Write(message.Data)
+		//	}
+		//}
 	}
 }
 
