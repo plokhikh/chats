@@ -18,12 +18,11 @@ func raiseEvent(name string, source Source, data interface{}) {
 	switch name := event.Name; name {
 	//@todo create enum for events
 	case "message-sended":
-		//event.Data = data
-
 	//assert that data interface exactly what eventMessageSended need
 		if asserted, ok := data.(MessageData); ok {
 			var messageSendedEvent MessageSendedEvent
 
+			//could't copy Event field to MessageSendedEvent using MessageSendedEvent{Event}
 			messageSendedEvent.Type = event.Type
 			messageSendedEvent.Source = event.Source
 			messageSendedEvent.Name = event.Name
