@@ -8,6 +8,7 @@ import (
 	"log"
 	"encoding/json"
 	"strconv"
+	"fmt"
 )
 
 var addr = flag.String("addr", "127.0.0.1:8080", "http service address")
@@ -25,7 +26,11 @@ func enter(userId int, conn *websocket.Conn) {
 	userConnect.Output = conn
 	userConnect.UserId = userId
 
-	raiseEvent(eventNames[EventNameUserEntered], Source{Type: SourceTypeUser, Guid: strconv.Itoa(userId)}, nil)
+	raiseEvent(
+		eventNames[EventNameUserEntered],
+		Source{Type: SourceTypeUser, Guid: strconv.Itoa(userId), Name: fmt.Sprintf("user %d", userId)},
+		nil,
+	)
 
 	online = append(online, userConnect)
 }

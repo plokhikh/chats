@@ -22,6 +22,7 @@ type RawPkg struct {
 type Source struct {
 	Type SourceType `json:"type"`
 	Guid string `json:"guid"`
+	Name string `json:"name"`
 }
 
 /** базовая структура, некий "пакет", который может быть командой или событием */
