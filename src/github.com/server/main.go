@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"log"
 	"encoding/json"
+	"strconv"
 )
 
 var addr = flag.String("addr", "127.0.0.1:8080", "http service address")
@@ -17,11 +18,11 @@ var count = 0
 var input = make(chan RawPkg)
 
 /** регистрируем пользователя, выдавая коннект */
-func register(userId int, response http.ResponseWriter) {
+func enter(userId int, conn *websocket.Conn) {
 	var userConnect UserOnline
-	log.Printf("register user: %d", userId)
+	log.Printf("user entered: %d", userId)
 
-	userConnect.Output = response
+	userConnect.Output = conn
 	userConnect.UserId = userId
 
 	online = append(online, userConnect)
@@ -40,13 +41,12 @@ func handle(response http.ResponseWriter, request *http.Request) {
 	count++
 	userId := count
 
-	register(userId, response)
+	enter(userId, conn)
 
 	for {
 		if _, message, err := conn.ReadMessage(); err == nil {
 			log.Printf("recv: %s", message)
 			input <- RawPkg{UserId: userId, Message: message}
-			response.Write([]byte("sdfgsdgfdsg"))
 		} else {
 			log.Print(err)
 			conn.Close()
@@ -59,11 +59,14 @@ func handle(response http.ResponseWriter, request *http.Request) {
 func listenInput() {
 	for {
 		rawPkg := <- input
+		//@todo check that's real command
 		command := Command{}
 
 		if err := json.Unmarshal([]byte(rawPkg.Message), &command); err!=nil {
 			log.Panic(err)
 		} else {
+			command.Source.Type = SourceTypeUser
+			command.Source.Guid = strconv.Itoa(rawPkg.UserId)
 			commandHandler(command)
 		}
 	}
