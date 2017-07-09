@@ -25,6 +25,8 @@ func enter(userId int, conn *websocket.Conn) {
 	userConnect.Output = conn
 	userConnect.UserId = userId
 
+	raiseEvent(eventNames[EventNameUserEntered], Source{Type: SourceTypeUser, Guid: strconv.Itoa(userId)}, nil)
+
 	online = append(online, userConnect)
 }
 

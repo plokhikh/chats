@@ -4,28 +4,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-/** Defining PkgType enum */
-type PkgType int
-const (
-	PkgTypeCommand PkgType = 0 + iota
-	PkgTypeEvent
-)
-var pkgTypes = [...]string{
-	"PkgTypeCommand",
-	"PkgTypeEvent",
-}
-/** end define */
-
-/** Defining SourceType enum */
-type SourceType int
-const (
-	SourceTypeUser SourceType = 0 + iota
-)
-var sourceTypes = [...]string{
-	"SourceTypeUser",
-}
-/** end define */
-
 type UserOnline struct {
 	UserId int
 	Output *websocket.Conn //output writer for a user
@@ -80,4 +58,7 @@ type SendMessageCommand struct {
 type MessageSendedEvent struct {
 	Event
 	Data MessageData `json:"data"`
+}
+type UserEnteredEvent struct {
+	Event
 }
