@@ -5,10 +5,12 @@ type PkgType int
 const (
 	PkgTypeCommand PkgType = 0 + iota
 	PkgTypeEvent
+	PkgTypeValue
 )
 var pkgTypes = [...]string{
-	"PkgTypeCommand",
-	"PkgTypeEvent",
+	"command",
+	"event",
+	"value",
 }
 /** end define */
 
@@ -18,7 +20,7 @@ const (
 	SourceTypeUser SourceType = 0 + iota
 )
 var sourceTypes = [...]string{
-	"SourceTypeUser",
+	"user",
 }
 /** end define */
 
@@ -34,12 +36,24 @@ var eventNames = [...]string{
 }
 /** end defining */
 
+/** Defining ValueName enum */
+type ValueName int
+const (
+	ValueNameUsersOnline ValueName = 0 + iota
+)
+var valueNames = [...]string{
+	"users-online",
+}
+/** end define */
+
 /** defining commands type enum */
 type CommandName int
 const (
 	CommandNameSendMessage CommandName = 0 + iota
+	CommandNameGetUsersOnline
 )
 var commandNames = [...]string{
 	"send-message",
+	"get-users-online",
 }
 /** end defining */

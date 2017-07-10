@@ -19,12 +19,12 @@ var count = 0
 var input = make(chan RawPkg)
 
 /** регистрируем пользователя, выдавая коннект */
-func enter(userId int, conn *websocket.Conn) {
-	var userConnect UserOnline
+func enter(userId int, conn *websocket.Conn) (UserOnline) {
+	var userOnline UserOnline
 	log.Printf("user entered: %d", userId)
 
-	userConnect.Output = conn
-	userConnect.UserId = userId
+	userOnline.Output = conn
+	userOnline.UserId = userId
 
 	raiseEvent(
 		eventNames[EventNameUserEntered],
@@ -32,7 +32,9 @@ func enter(userId int, conn *websocket.Conn) {
 		nil,
 	)
 
-	online = append(online, userConnect)
+	online = append(online, userOnline)
+
+	return userOnline
 }
 
 /**
@@ -48,12 +50,12 @@ func handle(response http.ResponseWriter, request *http.Request) {
 	count++
 	userId := count
 
-	enter(userId, conn)
+	userOnline := enter(userId, conn)
 
 	for {
 		if _, message, err := conn.ReadMessage(); err == nil {
 			log.Printf("recv: %s", message)
-			input <- RawPkg{UserId: userId, Message: message}
+			input <- RawPkg{User: userOnline, Message: message}
 		} else {
 			log.Print(err)
 			conn.Close()
@@ -73,8 +75,15 @@ func listenInput() {
 			log.Panic(err)
 		} else {
 			command.Source.Type = SourceTypeUser
-			command.Source.Guid = strconv.Itoa(rawPkg.UserId)
-			commandHandler(command)
+			command.Source.Guid = strconv.Itoa(rawPkg.User.UserId)
+
+			//если у команды есть какой-то результат работы - отправляем его обратно в сокет
+			if result := commandHandler(command); result != nil {
+				encoded, _ := json.Marshal(result)
+				log.Printf("Send message \"%s\" to user with guid \"%d\"", encoded, rawPkg.User.UserId)
+
+				rawPkg.User.Output.WriteMessage(websocket.TextMessage, encoded)
+			}
 		}
 	}
 }

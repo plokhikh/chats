@@ -14,7 +14,7 @@ type UserOnline struct {
  * голая структура куда читается то, что пришло от юзера
  */
 type RawPkg struct {
-	UserId  int
+	User    UserOnline
 	Message []byte
 }
 
@@ -34,19 +34,22 @@ type Pkg struct {
 	Data interface{} `json:"data"`
 }
 
+/** три кита, на которых стоит всё */
 type Command struct {
 	Pkg
 }
-
 type Event struct {
+	Pkg
+}
+type Value struct {
 	Pkg
 }
 
 /**
- * специфические структуры данных для команд/событий
+ * специфические структуры данных для команд/событий/значений
  */
 type MessageData struct {
-	To int `json:"to"`
+	To Source `json:"to"`
 	Message string `json:"message"`
 }
 
@@ -62,4 +65,9 @@ type MessageSendedEvent struct {
 }
 type UserEnteredEvent struct {
 	Event
+}
+
+type UsersOnlineValue struct {
+	Value
+	Data []Source `json:"data"`
 }

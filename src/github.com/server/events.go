@@ -5,6 +5,7 @@ import (
 	"time"
 	"encoding/json"
 	"github.com/gorilla/websocket"
+	"strconv"
 )
 
 func raiseEvent(name string, source Source, data interface{}) {
@@ -37,9 +38,9 @@ func raiseEvent(name string, source Source, data interface{}) {
  */
 func eventMessageSended(event MessageSendedEvent) {
 	for _, userOnline := range online {
-		if userOnline.UserId == event.Data.To {
+		if strconv.Itoa(userOnline.UserId) == event.Data.To.Guid {
 			encoded, _ := json.Marshal(event)
-			log.Printf("Send message \"%s\" to user %d", encoded, event.Data.To)
+			log.Printf("Send message \"%s\" to \"%s\" with guid \"%s\"", encoded, sourceTypes[event.Data.To.Type], event.Data.To.Guid)
 			userOnline.Output.WriteMessage(websocket.TextMessage, encoded)
 		}
 	}
@@ -50,9 +51,9 @@ func eventMessageSended(event MessageSendedEvent) {
  */
 func eventUserEntered(event UserEnteredEvent) {
 	for _, userOnline := range online {
-		if string(userOnline.UserId) != event.Source.Guid{
+		if strconv.Itoa(userOnline.UserId) != event.Source.Guid{
 			encoded, _ := json.Marshal(event)
-			log.Printf("Send message \"%s\" to user %s", encoded, event.Source.Guid)
+			log.Printf("Send message \"%s\" to user %s", encoded, userOnline.UserId)
 			userOnline.Output.WriteMessage(websocket.TextMessage, encoded)
 		}
 	}
