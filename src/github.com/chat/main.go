@@ -14,7 +14,7 @@ import (
 var addr = flag.String("addr", "127.0.0.1:8080", "http service address")
 var upgrader = websocket.Upgrader{}
 //массив структур с id пользователя и исходящим каналом к нему
-var online = make([]UserOnline, 0, 10)
+var online = make([]UserOnline, 0, 2)
 var count = 0
 var input = make(chan RawPkg)
 
