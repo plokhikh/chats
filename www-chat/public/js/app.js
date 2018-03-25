@@ -11,15 +11,15 @@ app.factory('$socket', function() {
 app.directive('listUserItem', function () {
     return function (scope, element, attrs) {
         scope.listUserItemClass = function() {
-            if (scope.currentUserId === element.data().userId) {
+            if (scope.currentUserId === element.data().$scope.user.id) {
                 return 'bg-success';
             } else {
                 return '';
             }
-        }
+        };
 
         element.bind("click", function (event) {
-            scope.setcurrentUserId(element.data().userId);
+            scope.setcurrentUserId(element.data().$scope.user.id);
             scope.$apply();
         });
     };

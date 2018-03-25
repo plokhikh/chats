@@ -7,37 +7,34 @@
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <!-- Place favicon.ico in the root directory -->
-
-    <link rel="stylesheet" href="public/css/bootstrap.css">
-    <link rel="stylesheet" href="public/css/bootstrap-material-design.css">
-    <link rel="stylesheet" href="public/css/bootstrap-material-design.css.map">
-    <link rel="stylesheet" href="public/css/ripples.css">
-    <link rel="stylesheet" href="public/css/ripples.css.map">
+    <link rel="stylesheet" href="public/css/skeleton.css">
+    <link rel="stylesheet" href="public/css/normalize.css">
+    <link rel="stylesheet" href="public/css/chat.css">
+    <link rel="stylesheet" href="public/css/font-awesome.css">
 </head>
 
-<body class="container-fluid" ng-app="chat">
+<body class="container" ng-app="chat">
 <!--[if lte IE 9]>
 <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience and security.</p>
 <![endif]-->
 
 <div class="row" ng-controller="AppController">
-    <div class="col-md-3"></div>
-    <div class="col-md-6">
+    <div class="three columns"></div>
+    <div class="six columns">
         <div class="panel panel-default">
             <div class="row">
-                <div class="col-md-4">
-                    <ul class="list-group">
-                        <div list-user-item ng-class="listUserItemClass()" ng-repeat="user in users" data-user-id="{{ user.id }}">
-                            <li class="list-group-item">
-                                <!--<span class="badge js-user-messages-unread">14</span>-->
-                                <span class="glyphicon glyphicon-record" aria-hidden="true">{{ user.name }}</span>
-                            </li>
+                <div class="six columns people-list">
+                    <div list-user-item class="people-list-item clearfix" ng-repeat="user in users">
+                        <img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/195612/chat_avatar_02.jpg" alt="avatar">
+                        <div class="about">
+                            <div class="name">Aiden Chavez</div>
+                            <div class="status">
+                                <i class="fa fa-circle offline"></i> left 7 mins ago
+                            </div>
                         </div>
-                    </ul>
+                    </div>
                 </div>
-                <div class="col-md-8">
+                <div class="six columns">
                     <div class="chat-history">
                         <div class="chat-history-item" ng-repeat="message in getMessages(currentUserId)">
                             <div class="row">
@@ -57,18 +54,12 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3"></div>
+    <div class="three columns"></div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.2.0.min.js" integrity="sha256-JAW99MJVpJBGcbzEuXk4Az05s/XyDdBomFqNlM3ic+I=" crossorigin="anonymous"></script>
-<!-- Custom javascript -->
 <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.5/angular.min.js"></script>
-<script src="talker.js"></script>
-<script src="app.js"></script>
-<script src="public/js/bootstrap.js"></script>
-<script src="public/js/material.js"></script>
-<script src="public/js/ripples.js"></script>
-
+<script src="public/js/talker.js"></script>
+<script src="public/js/app.js"></script>
 
 </body>
 </html>
